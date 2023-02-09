@@ -1,0 +1,71 @@
+﻿@page "/seatings/"
+@inject HttpClient _client
+@inject IJSRuntime js
+@attribute [Authorize]
+@inject HttpInterceptorService _interceptor
+@implements IDisposable
+
+<h3 class="card-title">Seating</h3>
+
+@if (Seatings == null)
+{
+    <div class="alert alert-info">Loading Seatings...</div>
+}
+else
+{
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var seating in Seatings)
+            {
+                <tr>
+                    <td>@seating.Name</td>
+                    <td>
+                        <a href="/seatings/view/@seating.Id" class="btn btn-primary">
+                            <span class="oi oi-book"></span>
+                        </a>
+                        <a href="/seatings/edit/@seating.Id" class="btn btn-warning">
+                            <span class="oi oi-pencil"></span>
+                        </a>
+                        <button class="btn btn-danger" @onclick="@(()=>Delete(seating.Id))">
+                            <span class="oi oi-delete"></span>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<br />
+
+@code {
+    private List<Seating> Seatings;
+
+    protected async override Task OnInitializedAsync()
+    {
+        _interceptor.MonitorEvent();
+        Seatings = await _client.GetFromJsonAsync<List<Seating>>($"{Endpoints.SeatingsEndpoint}");
+    }
+
+    async Task Delete(int SeatingId)
+    {
+        var seating = Seatings.First(q => q.Id == seatingId);
+        var confirm = await js.InvokeAsync<bool>("confirm", $"Do you want to delete {seating.Name}?");
+        if (confirm)
+        {
+            await _client.DeleteAsync($"{Endpoints.SeatingsEndpoint}/{seatingId}");
+            await OnInitializedAsync();
+        }
+    }
+
+    public void Dispose()
+    {
+        _interceptor.DisposeEvent();
+    }
+}

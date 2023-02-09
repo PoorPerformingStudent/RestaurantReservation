@@ -1,0 +1,89 @@
+﻿@page "/restaurants/create/"
+@inject HttpClient _client
+@inject NavigationManager _navManager
+
+<h3 class="card-title">Create New Restaurant</h3>
+<hr />
+<br />
+
+<FormComponent ButtonText="Create Restaurant" restaurant="restaurant" OnValidSubmit="@CreateRestaurant" />
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Name: </label>
+        <div>
+            <InputText @bind-Value="@restaurant.Name" class="form-control" />
+            <ValidationMessage For="@(() => restaurant.Name)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Type: </label>
+        <div>
+            <InputText @bind-Value="@restaurant.Type" class="form-control" />
+            <ValidationMessage For="@(() => restaurant.Type)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Contact: </label>
+        <div>
+            <InputNumber @bind-Value="@restaurant.Contact" class="form-control" />
+            <ValidationMessage For="@(() => restaurant.Contact)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Address: </label>
+        <div>
+            <InputText @bind-Value="@restaurant.Address" class="form-control" />
+            <ValidationMessage For="@(() => restaurant.Address)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>TableNumber: </label>
+        <div>
+            <InputText @bind-Value="@restaurant.TableNumber" class="form-control" />
+            <ValidationMessage For="@(() => restaurant.TableNumber)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>TimeSlot: </label>
+        <div>
+            <InputNumber @bind-Value="@restaurant.TimeSlot" class="form-control" />
+            <ValidationMessage For="@(() => restaurant.TimeSlot)" />
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-success btn-block">
+        Create Restaurant
+    </button>
+
+@code {
+    Restaurant restaurant = new Shared.Restaurant();
+    private IList<Name> Names;
+    private IList<Type> Types;
+    private IList<Contact> Contacts;
+    private IList<Address> Addresses;
+    private IList<TableNumber> TableNumbers;
+    private IList<TimeSlot> TimeSlots;
+
+    protected async override Task OnInitializedAsync()
+    {
+        Names = await _client.GetFromJsonAsync<List<Name>>($"{Endpoints.NamesEndpoint}");
+        Types = await _client.GetFromJsonAsync<List<Type>>($"{Endpoints.TypesEndpoint}");
+        Contacts = await _client.GetFromJsonAsync<List<Contact>>($"{Endpoints.ContactsEndpoint}");
+        Addresses = await _client.GetFromJsonAsync<List<Address>>($"{Endpoints.AddressesEndpoint}");
+        TableNumbers = await _client.GetFromJsonAsync<List<TableNumber>>($"{Endpoints.TableNumbersEndpoint}");
+        TimeSlots = await _client.GetFromJsonAsync<List<TimeSlot>>($"{Endpoints.TimeSlotsEndpoint}");
+    }
+
+    private async Task CreateRestaurant()
+    {
+        await _client.PostAsJsonAsync(Endpoints.RestaurantsEndpoint, restaurant);
+        _navManager.NavigateTo("/restaurants/");
+    }
+}

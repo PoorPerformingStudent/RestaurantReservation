@@ -1,0 +1,115 @@
+﻿@page "/menus/create/"
+@inject HttpClient _client
+@inject NavigationManager _navManager
+
+<h3 class="card-title">Create New Menu</h3>
+<hr />
+<br />
+
+<FormComponent ButtonText="Create Menu" menu="menu" OnValidSubmit="@CreateMenu" />
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="form-group">
+        <label>Name: </label>
+        <div>
+            <InputText @bind-Value="@menu.Name" class="form-control" />
+            <ValidationMessage For="@(() => menu.Name)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Price: </label>
+        <div>
+            <InputNumber @bind-Value="@menu.Price" class="form-control" />
+            <ValidationMessage For="@(() => menu.Price)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Quantity: </label>
+        <div>
+            <InputNumber @bind-Value="@menu.Quantity" class="form-control" />
+            <ValidationMessage For="@(() => menu.Quantity)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Status: </label>
+        <div>
+            <InputText @bind-Value="@menu.Status" class="form-control" />
+            <ValidationMessage For="@(() => menu.Status)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Availability: </label>
+        <div>
+            <InputText @bind-Value="@menu.Availability" class="form-control" />
+            <ValidationMessage For="@(() => menu.Availability)" />
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Restaurant: </label>
+        <div>
+            <InputSelect @bind-Value="menu.Restaurant" class="form-control">
+                <option value="">-- Select Restaurant --</option>
+                @if (Restaurants != null)
+                {
+                    foreach (var restaurant in Restaurants)
+                    {
+                        <option value="@restaurant.Id">@restaurant.Name</option>
+                    }
+                }
+            </InputSelect>
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Customer: </label>
+        <div>
+            <InputSelect @bind-Value="menu.Customer" class="form-control">
+                <option value="">-- Select Customer --</option>
+                @if (Customers != null)
+                {
+                    foreach (var customer in Customers)
+                    {
+                        <option value="@customer.Id">@customer.Name</option>
+                    }
+                }
+            </InputSelect>
+        </div>
+    </div>
+
+    <button type="submit" class="btn btn-success btn-block">
+        Create Menu
+    </button>
+
+@code {
+    Menu menu = new Shared.Menu();
+    private IList<Name> Names;
+    private IList<Price> Prices;
+    private IList<Quantity> Quantities;
+    private IList<Status> Statuses;
+    private IList<Availability> Availabilities;
+    private IList<Restaurant> Restaurants;
+    private IList<Customer> Customers;
+
+    protected async override Task OnInitializedAsync()
+    {
+        Names = await _client.GetFromJsonAsync<List<Name>>($"{Endpoints.NamesEndpoint}");
+        Prices = await _client.GetFromJsonAsync<List<Price>>($"{Endpoints.PricesEndpoint}");
+        Quantities = await _client.GetFromJsonAsync<List<Quantity>>($"{Endpoints.QuantitiesEndpoint}");
+        Statuses = await _client.GetFromJsonAsync<List<Status>>($"{Endpoints.StatusesEndpoint}");
+        Availabilities = await _client.GetFromJsonAsync<List<Availability>>($"{Endpoints.AvailabilitiesEndpoint}");
+        Restaurants = await _client.GetFromJsonAsync<List<Restaurant>>($"{Endpoints.RestaurantsEndpoint}");
+        Customers = await _client.GetFromJsonAsync<List<Customer>>($"{Endpoints.CustomersEndpoint}");
+    }
+
+    private async Task CreateMenu()
+    {
+        await _client.PostAsJsonAsync(Endpoints.MenusEndpoint, menu);
+        _navManager.NavigateTo("/menus/");
+    }
+}

@@ -1,0 +1,71 @@
+﻿@page "/menus/"
+@inject HttpClient _client
+@inject IJSRuntime js
+@attribute [Authorize]
+@inject HttpInterceptorService _interceptor
+@implements IDisposable
+
+<h3 class="card-title">Menu</h3>
+
+@if (Menus == null)
+{
+    <div class="alert alert-info">Loading Menus...</div>
+}
+else
+{
+    <table class="table table-responsive">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var menu in Menus)
+            {
+                <tr>
+                    <td>@menu.Name</td>
+                    <td>
+                        <a href="/menus/view/@menu.Id" class="btn btn-primary">
+                            <span class="oi oi-book"></span>
+                        </a>
+                        <a href="/menus/edit/@menu.Id" class="btn btn-warning">
+                            <span class="oi oi-pencil"></span>
+                        </a>
+                        <button class="btn btn-danger" @onclick="@(()=>Delete(menu.Id))">
+                            <span class="oi oi-delete"></span>
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+<br />
+
+@code {
+    private List<Menu> Menus;
+
+    protected async override Task OnInitializedAsync()
+    {
+        _interceptor.MonitorEvent();
+        Menus = await _client.GetFromJsonAsync<List<Menu>>($"{Endpoints.MenusEndpoint}");
+    }
+
+    async Task Delete(int MenuId)
+    {
+        var menu = Menus.First(q => q.Id == menuId);
+        var confirm = await js.InvokeAsync<bool>("confirm", $"Do you want to delete {menu.Name}?");
+        if (confirm)
+        {
+            await _client.DeleteAsync($"{Endpoints.MenusEndpoint}/{menuId}");
+            await OnInitializedAsync();
+        }
+    }
+
+    public void Dispose()
+    {
+        _interceptor.DisposeEvent();
+    }
+}
